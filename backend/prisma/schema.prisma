@@ -1,0 +1,151 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db" // Use a local SQLite file
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  username      String   @unique
+  email         String   @unique
+  passwordHash  String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  usernameColor String?
+  comments      Comment[]
+  reactions     Reaction[]
+  blogPosts     BlogPost[]
+  commentLikes  CommentLike[]
+  progress      UserNovelProgress[] // Relation to reading progress
+  role          String   @default("user")
+
+  @@map("users")
+}
+
+model Novel {
+  id            Int      @id @default(autoincrement())
+  title         String   @unique
+  authorName    String?
+  description   String?
+  coverImageUrl String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  chapters      Chapter[]
+  progress      UserNovelProgress[] // Relation to reading progress
+
+  @@map("novels")
+}
+
+model Chapter {
+  id            Int      @id @default(autoincrement())
+  novelId       Int
+  title         String
+  chapterNumber Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  novel         Novel    @relation(fields: [novelId], references: [id], onDelete: Cascade)
+  contentSegments ChapterContentSegment[]
+  progress      UserNovelProgress[] // Relation to reading progress
+
+  @@unique([novelId, chapterNumber])
+  @@map("chapters")
+}
+
+model ChapterContentSegment {
+  id          Int      @id @default(autoincrement())
+  chapterId   Int
+  segmentIndex Int
+  segmentType String   @default("paragraph")
+  textContent String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  chapter     Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  comments    Comment[]
+  reactions   Reaction[]
+
+  @@unique([chapterId, segmentIndex])
+  @@map("chapter_content_segments")
+}
+
+model Comment {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  segmentId       Int
+  parentCommentId Int?
+  commentText     String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  segment         ChapterContentSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  parentComment   Comment? @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  replies         Comment[] @relation("CommentReplies")
+  likes           CommentLike[]
+
+  @@index([segmentId])
+  @@map("comments")
+}
+
+model CommentLike {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  commentId Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@index([commentId])
+  @@map("comment_likes")
+}
+
+
+model Reaction {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  segmentId    Int
+  reactionType String
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  segment      ChapterContentSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, segmentId, reactionType])
+  @@index([segmentId])
+  @@map("reactions")
+}
+
+model BlogPost {
+  id          Int       @id @default(autoincrement())
+  authorId    Int
+  title       String    @unique // Make title unique for upsert
+  content     String
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  author      User      @relation(fields: [authorId], references: [id])
+
+  @@index([publishedAt])
+  @@map("blog_posts")
+}
+
+// New model for User Reading Progress
+model UserNovelProgress {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  novelId        Int
+  lastReadChapterId Int?     // Chapter ID they were last reading in this novel
+  lastReadScrollY Float?   // Scroll position (Y coordinate) in that chapter
+  updatedAt      DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  novel   Novel    @relation(fields: [novelId], references: [id], onDelete: Cascade)
+  chapter Chapter? @relation(fields: [lastReadChapterId], references: [id], onDelete: SetNull) // Optional relation
+
+  @@unique([userId, novelId]) // Each user has one progress entry per novel
+  @@map("user_novel_progress")
+}

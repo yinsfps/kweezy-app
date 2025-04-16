@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kweezy Admin</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Kweezy Admin Tool</h1>
+
+    <div id="login-section">
+        <h2>Login</h2>
+        <form id="login-form">
+            <label for="email">Email:</label>
+            <input type="email" id="email" required><br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" required><br>
+            <button type="submit">Login</button>
+        </form>
+        <p id="login-error" class="error"></p>
+    </div>
+
+    <div id="admin-content" style="display: none;">
+        <p>Welcome, <span id="username">Admin</span>! <button id="logout-button">Logout</button></p>
+        <hr>
+
+        <h2>Create Book</h2>
+        <form id="create-novel-form">
+            <label for="novel-title">Title:</label>
+            <input type="text" id="novel-title" required><br>
+            <label for="novel-author">Author Name:</label>
+            <input type="text" id="novel-author"><br>
+            <label for="novel-desc">Description:</label>
+            <textarea id="novel-desc" rows="4"></textarea><br>
+            <button type="submit">Create Book</button>
+        </form>
+        <p id="novel-message" class="message"></p>
+        <hr>
+
+        <h2>Create Chapter</h2>
+        <form id="create-chapter-form">
+            <label for="chapter-novel-select">Book:</label>
+            <select id="chapter-novel-select" required>
+                 <option value="" disabled selected>Loading books...</option>
+                 <!-- Populated by JS -->
+            </select><br>
+            <label for="chapter-title">Chapter Title (Optional):</label>
+            <input type="text" id="chapter-title"><br> <!-- Removed required -->
+            <label for="chapter-number">Chapter Number:</label>
+            <input type="number" id="chapter-number" required min="1"><br>
+            <button type="submit">Create Chapter</button>
+        </form>
+        <p id="chapter-message" class="message"></p>
+        <hr>
+
+        <h2>Add/Update Chapter Content</h2>
+        <form id="chapter-content-form">
+            <label for="content-novel-select">Book:</label>
+            <select id="content-novel-select" required>
+                <option value="" disabled selected>Loading books...</option>
+                <!-- Book options will be populated by JS -->
+            </select><br>
+            <label for="content-chapter-number">Chapter Number:</label>
+            <input type="number" id="content-chapter-number" required min="1"><br>
+            <label for="raw-content">Raw Content (Use [ ] format):</label><br>
+            <textarea id="raw-content" rows="15" required></textarea><br>
+            <button type="submit">Update Content</button>
+        </form>
+        <p id="content-message" class="message"></p>
+        <p id="content-error" class="error"></p>
+        <hr>
+
+        <h2>Manage Books & Chapters</h2>
+        <div id="manage-section">
+            <p id="manage-loading" style="display: none;">Loading books...</p>
+            <p id="manage-error" class="error"></p>
+            <div id="novel-list-container">
+                <!-- Book list with cover update fields will be populated by JS -->
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
